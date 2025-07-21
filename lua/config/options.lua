@@ -37,5 +37,6 @@ vim.g.virtualedit=block,onemore
 vim.opt.number = true
 
 
+vim.opt.termguicolors = true
 
 

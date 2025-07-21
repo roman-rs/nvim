@@ -244,5 +244,6 @@ vim.keymap.set( 'n', '<C-l>', ':bn<CR>', silent )
 vim.keymap.set('n', '<C-N><C-N>', ':set invnumber<CR>', silent )
 
 
+--vim.cmd [[colorscheme PaperColor]]
 
 
