@@ -7,10 +7,25 @@ local servers = {
 }
 
 for _, server in ipairs(servers) do
-    require('lspconfig')[server].setup({
-      capabilities = capabilities,
-      on_attach = on_attach
-    })
+    if server == "clangd" then
+        -- clangd specific settings
+        require('lspconfig')[server].setup({
+            cmd = { "clangd",
+                    "--query-driver=**"
+            },
+            capabilities = capabilities,
+            on_attach = function(client, bufnr)
+                -- Enable clangd-specific features here if needed
+                vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
+            end
+        })
+    else
+         -- Generic setup for other servers
+         require('lspconfig')[server].setup({
+           capabilities = capabilities,
+           on_attach = on_attach
+         })
+    end
     vim.lsp.enable(server)
 end
 
