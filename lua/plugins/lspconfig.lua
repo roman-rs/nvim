@@ -1,5 +1,12 @@
 return {
   { "neovim/nvim-lspconfig" },
+  -- { "RishabhRD/nvim-lsputils",
+  --   keys = {
+  --       --{ "<C-d>", "preview-page-down", desc = "Fzf page down", mode = "n" },
+  --       --{ "<C-p>", "[[:FzfLua files<CR>", desc = "Fzf files", mode = "n" },
+  --       { "<leader>a", vim.lsp.buf.code_action, desc = "Fzf files", mode = "n" },
+  --   }
+  -- },
   { "hrsh7th/nvim-cmp",
     dependencies = {
       { "hrsh7th/cmp-nvim-lsp" },
