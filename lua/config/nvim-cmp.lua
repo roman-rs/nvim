@@ -15,6 +15,11 @@ for _, server in ipairs(servers) do
             },
             capabilities = capabilities,
             on_attach = function(client, bufnr)
+                if vim.wo.diff then
+                    -- don't attach to diff buffers
+                    client.stop()
+                    return
+                end
                 -- Enable clangd-specific features here if needed
                 vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
             end
@@ -122,5 +127,4 @@ cmp.setup.cmdline(':', {
   }),
   matching = { disallow_symbol_nonprefix_matching = false }
 })
-
 
