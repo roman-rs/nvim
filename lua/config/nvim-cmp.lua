@@ -1,76 +1,76 @@
 
-
 -- Setup lspconfig.
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 local servers = {
-    "clangd",
+  "clangd",
 }
 
 local custom_clangd_on_attach = function(client, bufnr)
-    if vim.wo.diff then
-        -- don't attach to diff buffers
-        client.stop()
-        return
-    end
-    -- Enable completion triggered by <c-x><c-o>
-    vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
+  if vim.wo.diff then
+    -- don't attach to diff buffers
+    client.stop()
+    return
+  end
 
-    -- Mappings.
-    local opts = { noremap=true, silent=true }
-    -- See `:help vim.lsp.*` for documentation on any of the below functions
-    vim.keymap.set('n', 'sh',  ':LspClangdSwitchSourceHeader<CR>', opts )
-    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'K', '<Cmd>lua vim.lsp.buf.hover()<CR>', opts)
-    vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>rn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
-    vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>e', '<cmd>lua vim.diagnostic.open_float()<CR>', opts)
-    vim.api.nvim_buf_set_keymap(bufnr, 'n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
-    vim.api.nvim_buf_set_keymap(bufnr, 'n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
-    vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>Q', '<cmd>lua vim.diagnostic.setloclist()<CR>',    opts)
-    --vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>D', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opts)
-    --vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>ca', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
-    --vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
-    --vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
-    --vim.api.nvim_buf_set_keymap(bufnr, 'n', '<C-k>', '<cmd>lua vim.lsp.buf.signature_help()<CR>', opts)
-    --vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>wa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', opts)
-    --vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>wr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>', opts)
-    --vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>wl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>', opts)
-    --vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gD', '<Cmd>lua vim.lsp.buf.declaration()<CR>', opts)
-    --vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gd', '<Cmd>lua vim.lsp.buf.definition()<CR>', opts)
+  -- Enable completion triggered by <c-x><c-o>
+  vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
+
+  -- Mappings.
+  local opts = { noremap=true, silent=true }
+  -- See `:help vim.lsp.*` for documentation on any of the below functions
+  vim.keymap.set('n', 'sh',  ':LspClangdSwitchSourceHeader<CR>', opts )
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'K', '<Cmd>lua vim.lsp.buf.hover()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>rn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>e', '<cmd>lua vim.diagnostic.open_float()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>Q', '<cmd>lua vim.diagnostic.setloclist()<CR>',    opts)
+  --vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>D', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opts)
+  --vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>ca', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
+  --vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
+  --vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
+  --vim.api.nvim_buf_set_keymap(bufnr, 'n', '<C-k>', '<cmd>lua vim.lsp.buf.signature_help()<CR>', opts)
+  --vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>wa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', opts)
+  --vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>wr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>', opts)
+  --vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>wl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>', opts)
+  --vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gD', '<Cmd>lua vim.lsp.buf.declaration()<CR>', opts)
+  --vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gd', '<Cmd>lua vim.lsp.buf.definition()<CR>', opts)
 end
 
 for _, server in ipairs(servers) do
-    local existing_on_attach = vim.lsp.config[server].on_attach
-    if server == "clangd" then
-        -- clangd specific settings
-        vim.lsp.config(server, {
-            cmd = { "clangd",
-                    "--query-driver=**",
-                    "--background-index",
-                    "--clang-tidy",
-                    "--completion-style=detailed",
-                    "--cross-file-rename",
-                    "--header-insertion=never",
-                    "--header-insertion-decorators=0",
-                    "--suggest-missing-includes",
-                    "--pch-storage=memory",
-                    "--folding-ranges",
-                    "--enable-config", -- clangd 11+ supports reading from .clangd configuration file
-            },
-            capabilities = capabilities,
-            on_attach = function(client, bufnr)
-                if existing_on_attach then
-                    existing_on_attach(client, bufnr)
-                end
-                custom_clangd_on_attach(client, bufnr)
-            end
-        })
-    else
-         -- Generic setup for other servers
-        vim.lsp.config(server, {
-            capabilities = capabilities,
-            on_attach = on_attach
-        })
-    end
-    vim.lsp.enable(server)
+  local existing_on_attach = vim.lsp.config[server].on_attach
+  if server == "clangd" then
+    -- clangd specific settings
+    vim.lsp.config(server, {
+      cmd = { "clangd",
+              "--query-driver=**",
+              "--background-index",
+              "--clang-tidy",
+              "--completion-style=detailed",
+              "--cross-file-rename",
+              "--header-insertion=never",
+              "--header-insertion-decorators=0",
+              "--suggest-missing-includes",
+              "--pch-storage=memory",
+              "--folding-ranges",
+              "--enable-config", -- clangd 11+ supports reading from .clangd configuration file
+      },
+      capabilities = capabilities,
+      on_attach = function(client, bufnr)
+        if existing_on_attach then
+          existing_on_attach(client, bufnr)
+        end
+        custom_clangd_on_attach(client, bufnr)
+      end
+    })
+  else
+     -- Generic setup for other servers
+    vim.lsp.config(server, {
+      capabilities = capabilities,
+      on_attach = on_attach
+    })
+  end
+  vim.lsp.enable(server)
 end
 
 local lspkind = require('lspkind')
@@ -99,12 +99,12 @@ cmp.setup({
   },
 
   mapping = cmp.mapping.preset.insert({
-        ['<C-d>'] = cmp.mapping.scroll_docs(-4),
-        ['<C-f>'] = cmp.mapping.scroll_docs(4),
-        ['<C-Space>'] = cmp.mapping.complete(),
-        ['<CR>'] = cmp.mapping.confirm({ select = true }),
-        ['<C-j>'] = cmp.mapping.select_next_item(),
-        ['<C-k>'] = cmp.mapping.select_prev_item(),
+    ['<C-d>'] = cmp.mapping.scroll_docs(-4),
+    ['<C-f>'] = cmp.mapping.scroll_docs(4),
+    ['<C-Space>'] = cmp.mapping.complete(),
+    ['<CR>'] = cmp.mapping.confirm({ select = true }),
+    ['<C-j>'] = cmp.mapping.select_next_item(),
+    ['<C-k>'] = cmp.mapping.select_prev_item(),
   }),
 
   formatting = {

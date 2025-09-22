@@ -1,1 +1,3 @@
-return {{ "https://github.com/github/copilot.vim", enabled = true }}
+return {
+  "https://github.com/github/copilot.vim", enabled = true
+}
