@@ -1,5 +1,6 @@
 return {
     enabled = true, -- breaks whitespace highlighting
+    lazy = true,
     "lukas-reineke/indent-blankline.nvim",
     main = "ibl",
     ---@module "ibl"

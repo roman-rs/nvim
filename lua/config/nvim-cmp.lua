@@ -9,10 +9,22 @@ local servers = {
 for _, server in ipairs(servers) do
     if server == "clangd" then
         -- clangd specific settings
-        require('lspconfig')[server].setup({
+        vim.lsp.config(server, {
             cmd = { "clangd",
-                    "--query-driver=**"
+                    "--background-index",
+                    "--clang-tidy",
+                    "--completion-style=detailed",
+                    "--cross-file-rename",
+                    "--header-insertion=never",
+                    "--header-insertion-decorators=0",
+                    "--suggest-missing-includes",
+                    "--pch-storage=memory",
+                    "--folding-ranges",
+                    "--enable-config", -- clangd 11+ supports reading from .clangd configuration file
             },
+            --cmd = { "clangd",
+            --        "--query-driver=**"
+            --},
             capabilities = capabilities,
             on_attach = function(client, bufnr)
                 if vim.wo.diff then
@@ -26,10 +38,10 @@ for _, server in ipairs(servers) do
         })
     else
          -- Generic setup for other servers
-         require('lspconfig')[server].setup({
-           capabilities = capabilities,
-           on_attach = on_attach
-         })
+        vim.lsp.config(server, {
+            capabilities = capabilities,
+            on_attach = on_attach
+        })
     end
     vim.lsp.enable(server)
 end
