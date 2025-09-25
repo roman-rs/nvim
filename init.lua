@@ -5,6 +5,7 @@ require("config.lazy")
 
 require("config.nvim-cmp")
 require("config.indent-blankline")
+require("config.fzf")
 
 require("config.keymaps")
 
