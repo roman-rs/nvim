@@ -3,6 +3,7 @@
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 local servers = {
   "clangd",
+  "rust-analyzer",
 }
 
 local custom_clangd_on_attach = function(client, bufnr)
@@ -37,9 +38,15 @@ local custom_clangd_on_attach = function(client, bufnr)
   --vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gd', '<Cmd>lua vim.lsp.buf.definition()<CR>', opts)
 end
 
+local custom_all_on_attach = function(client, bufnr)
+  print("LSP client ", client.name, " attached to buffer ", bufnr);
+end
+
 for _, server in ipairs(servers) do
-  local existing_on_attach = vim.lsp.config[server].on_attach
+  print("Setting up " .. server)
   if server == "clangd" then
+    local existing_on_attach = vim.lsp.config[server].on_attach
+
     -- clangd specific settings
     vim.lsp.config(server, {
       cmd = { "clangd",
@@ -63,11 +70,50 @@ for _, server in ipairs(servers) do
         custom_clangd_on_attach(client, bufnr)
       end
     })
+  elseif server == "rust-analyzer" then
+    --local existing_on_attach = vim.lsp.config[server].on_attach
+    vim.lsp.config(server, {
+      cmd = { "rust-analyzer" },
+      --cmd = { "cargo", "check", "--workspace", "--message-format=json", "--all-targets" },
+      capabilities = capabilities,
+      filetypes = { "rust", "rs" },
+      --root_dir = require('lspconfig.util').root_pattern("Cargo.toml", "rust-project.json"),
+      settings = {
+        ["rust-analyzer"] = {
+          cargo = { allFeatures = true },
+          checkOnSave = { command = "clippy" },
+        }
+      },
+
+      on_attach=on_attach,
+
+      settings = {
+        ["rust-analyzer"] = {
+            imports = {
+                granularity = {
+                    group = "module",
+                },
+                prefix = "self",
+            },
+            cargo = {
+                buildScripts = {
+                    enable = true,
+                },
+            },
+            procMacro = {
+                enable = true
+            },
+        }
+      }
+    })
   else
-     -- Generic setup for other servers
+    -- Generic setup for other servers
     vim.lsp.config(server, {
       capabilities = capabilities,
-      on_attach = on_attach
+      --on_attach = on_attach
+      --on_attach = function(client, bufnr)
+      --  custom_all_on_attach(client, bufnr)
+      --end
     })
   end
   vim.lsp.enable(server)
