@@ -20,7 +20,8 @@ local custom_clangd_on_attach = function(client, bufnr)
   local opts = { noremap=true, silent=true }
   -- See `:help vim.lsp.*` for documentation on any of the below functions
   vim.keymap.set('n', 'sh',  ':LspClangdSwitchSourceHeader<CR>', opts )
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'K', '<Cmd>lua vim.lsp.buf.hover()<CR>', opts)
+  --vim.api.nvim_buf_set_keymap(bufnr, 'n', 'K', '<Cmd>lua vim.lsp.buf.hover()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>h', '<Cmd>lua vim.lsp.buf.hover()<CR>', opts)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>rn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>e', '<cmd>lua vim.diagnostic.open_float()<CR>', opts)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
@@ -43,7 +44,7 @@ local custom_all_on_attach = function(client, bufnr)
 end
 
 for _, server in ipairs(servers) do
-  print("Setting up " .. server)
+  --print("Setting up " .. server)
   if server == "clangd" then
     local existing_on_attach = vim.lsp.config[server].on_attach
 
