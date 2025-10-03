@@ -35,6 +35,6 @@ vim.g.virtualedit=block,onemore
 -- Show the cursor line and column
 vim.opt.number = true
 
-
 vim.opt.termguicolors = true
 
+vim.opt.winborder = "rounded"
