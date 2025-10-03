@@ -3,8 +3,18 @@
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 local servers = {
   "clangd",
+  --"GitHub Copilot",
   "rust-analyzer",
+  "perlnavigator",
+  "python-lsp-server",
 }
+
+local opts = { noremap=true, silent=true }
+vim.keymap.set('n', '<leader>h',    ':lua vim.lsp.buf.hover()<CR>', opts )
+vim.keymap.set('n', '<leader>e',    ':lua vim.diagnostic.open_float()<CR>', opts)
+vim.keymap.set('n', '[d',           ':lua vim.diagnostic.goto_prev()<CR>', opts)
+vim.keymap.set('n', ']d',           ':lua vim.diagnostic.goto_next()<CR>', opts)
+vim.keymap.set('n', '<leader>Q',    ':lua vim.diagnostic.setloclist()<CR>',    opts)
 
 local custom_clangd_on_attach = function(client, bufnr)
   if vim.wo.diff then
@@ -19,14 +29,12 @@ local custom_clangd_on_attach = function(client, bufnr)
   -- Mappings.
   local opts = { noremap=true, silent=true }
   -- See `:help vim.lsp.*` for documentation on any of the below functions
-  vim.keymap.set('n', 'sh',  ':LspClangdSwitchSourceHeader<CR>', opts )
-  --vim.api.nvim_buf_set_keymap(bufnr, 'n', 'K', '<Cmd>lua vim.lsp.buf.hover()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>h', '<Cmd>lua vim.lsp.buf.hover()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>sh', '<cmd>LspClangdSwitchSourceHeader<CR>', opts)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>rn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>e', '<cmd>lua vim.diagnostic.open_float()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>Q', '<cmd>lua vim.diagnostic.setloclist()<CR>',    opts)
+  --vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>e', '<cmd>lua vim.diagnostic.open_float()<CR>', opts)
+  --vim.api.nvim_buf_set_keymap(bufnr, 'n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
+  --vim.api.nvim_buf_set_keymap(bufnr, 'n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
+  --vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>Q', '<cmd>lua vim.diagnostic.setloclist()<CR>',    opts)
   --vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>D', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opts)
   --vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>ca', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
   --vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
@@ -44,11 +52,10 @@ local custom_all_on_attach = function(client, bufnr)
 end
 
 for _, server in ipairs(servers) do
-  --print("Setting up " .. server)
+  print("Setting up " .. server)
   if server == "clangd" then
     local existing_on_attach = vim.lsp.config[server].on_attach
 
-    -- clangd specific settings
     vim.lsp.config(server, {
       cmd = { "clangd",
               "--query-driver=**",
@@ -71,14 +78,18 @@ for _, server in ipairs(servers) do
         custom_clangd_on_attach(client, bufnr)
       end
     })
+
+  --elseif server == "GitHub Copilot" then
+  --  vim.lsp.config(server, {
+  --    cmd = { "" },
+  --    capabilities = capabilities,
+  --  })
+
   elseif server == "rust-analyzer" then
-    --local existing_on_attach = vim.lsp.config[server].on_attach
     vim.lsp.config(server, {
       cmd = { "rust-analyzer" },
-      --cmd = { "cargo", "check", "--workspace", "--message-format=json", "--all-targets" },
       capabilities = capabilities,
       filetypes = { "rust", "rs" },
-      --root_dir = require('lspconfig.util').root_pattern("Cargo.toml", "rust-project.json"),
       settings = {
         ["rust-analyzer"] = {
           cargo = { allFeatures = true },
@@ -107,6 +118,44 @@ for _, server in ipairs(servers) do
         }
       }
     })
+
+  elseif server == "perlnavigator" then
+    --local existing_on_attach = vim.lsp.config[server].on_attach
+    vim.lsp.config(server, {
+      cmd = { "perlnavigator" },
+      capabilities = capabilities,
+      filetypes = { "perl", "pm", "pl", "t" },
+    })
+
+  elseif server == "python-lsp-server" then
+    vim.lsp.config(server, {
+      cmd = { "pylsp" },
+      capabilities = capabilities,
+      filetypes = { "py", "python" },
+      settings = {
+        pylsp = {
+          plugins = {
+            pycodestyle = {
+              enabled = false,
+            },
+            pylint = {
+              enabled = true,
+              args = {"--max-line-length=100"},
+            },
+            flake8 = {
+              enabled = false,
+            },
+            black = {
+              enabled = true,
+            },
+            isort = {
+              enabled = true,
+            },
+          }
+        }
+      },
+    })
+
   else
     -- Generic setup for other servers
     vim.lsp.config(server, {
