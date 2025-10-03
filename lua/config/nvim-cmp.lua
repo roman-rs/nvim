@@ -52,7 +52,7 @@ local custom_all_on_attach = function(client, bufnr)
 end
 
 for _, server in ipairs(servers) do
-  print("Setting up " .. server)
+  --print("Setting up " .. server)
   if server == "clangd" then
     local existing_on_attach = vim.lsp.config[server].on_attach
 
