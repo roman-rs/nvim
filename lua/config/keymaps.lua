@@ -28,5 +28,3 @@ vim.keymap.set( 'n', '<C-l>', ':bn<CR>', silent )
 -- toggle line numbers mapped (to Ctrl+n twice)
 vim.keymap.set('n', '<C-N><C-N>', ':set invnumber<CR>', silent )
 
--- compile project (makefile must be in root directory)
-vim.keymap.set('n', '<F5>', ':wa<CR>:!make -j8 install<CR>', silent );
