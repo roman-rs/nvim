@@ -57,7 +57,7 @@ local custom_rust_on_attach = function(client, bufnr)
 
   -- Mappings.
   local opts = { noremap=true, silent=true }
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<F5>', '<cmd>wa<CR><cmd>!cargo build<CR>', opts );
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<F5>', '<cmd>wa<CR><cmd>!cargo run<CR>', opts );
 end
 
 local custom_all_on_attach = function(client, bufnr)

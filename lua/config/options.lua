@@ -38,3 +38,6 @@ vim.opt.number = true
 vim.opt.termguicolors = true
 
 vim.opt.winborder = "rounded"
+
+
+vim.opt.clipboard = "unnamedplus"
