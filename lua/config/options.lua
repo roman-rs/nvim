@@ -41,26 +41,23 @@ vim.opt.winborder = "rounded"
 
 vim.opt.clipboard = "unnamedplus"
 
-local function paste()
-  return {
-    vim.fn.split(vim.fn.getreg(""), "\n"),
-    vim.fn.getregtype(""),
-  }
-end
-
-if vim.env.TMUX == nil  then
-  vim.g.clipboard = {
-    name = "OSC 52",
-    copy = {
-      ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
-      ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
-    },
-    paste = {
-      ["+"] = paste,
-      ["*"] = paste,
-    },
-  }
-end
-
-
-
+-- local function paste()
+--   return {
+--     vim.fn.split(vim.fn.getreg(""), "\n"),
+--     vim.fn.getregtype(""),
+--   }
+-- end
+--
+-- if vim.env.TMUX == nil  then
+--   vim.g.clipboard = {
+--     name = "OSC 52",
+--     copy = {
+--       ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
+--       ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
+--     },
+--     paste = {
+--       ["+"] = paste,
+--       ["*"] = paste,
+--     },
+--   }
+-- end
