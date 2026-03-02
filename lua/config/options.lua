@@ -39,7 +39,7 @@ vim.opt.termguicolors = true
 
 vim.opt.winborder = "rounded"
 
-vim.o.clipboard = "unnamedplus"
+vim.opt.clipboard = "unnamedplus"
 
 local function paste()
   return {
