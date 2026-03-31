@@ -37,3 +37,6 @@ vim.keymap.set("n", "<leader>qS", function() require("persistence").select() end
 vim.keymap.set("n", "<leader>ql", function() require("persistence").load({ last = true }) end)
 -- stop Persistence => session won't be saved on exit
 vim.keymap.set("n", "<leader>qd", function() require("persistence").stop() end)
+
+-- git blame
+vim.keymap.set( 'n', '<F12>', ':BlameToggle<CR>', silent )
