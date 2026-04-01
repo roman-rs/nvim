@@ -9,6 +9,9 @@ vim.g.maplocalleader = ' '
 -- longer history
 vim.opt.history = 500
 
+-- line width
+vim.opt.colorcolumn = "80"
+
 -- ignore case by default
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
