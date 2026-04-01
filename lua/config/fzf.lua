@@ -17,6 +17,15 @@ fzf.setup({
       },
     },
   },
+
+  winopts = {
+    border = "rounded",
+    preview = {
+      vertical = "down:65%",
+      layout = "vertical",
+    },
+  },
+
   -- Specific commands configuration
   files = {
     -- Use 'fd' for faster file search if installed
