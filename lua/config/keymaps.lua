@@ -15,6 +15,8 @@ vim.keymap.set('n', "<C-g>", ':FzfLua grep<CR>', silent )
 vim.keymap.set('n', '<leader>lca', ':FzfLua lsp_code_actions<CR>', silent )
 vim.keymap.set('n', '<leader>gr',  ':FzfLua lsp_references<CR>', silent )
 vim.keymap.set('n', '<leader>gd',  ':FzfLua lsp_definitions<CR>', silent )
+vim.keymap.set('n', '<leader>gs',  ':FzfLua git_status<CR>', silent )
+vim.keymap.set('n', '<leader>gb',  ':FzfLua git_blame<CR>', silent )
 vim.keymap.set('n', '<leader>D',   ':FzfLua lsp_typedefs<CR>', silent )
 vim.keymap.set('n', '<leader>gh',  ':FzfLua command_history<CR>', silent )
 vim.keymap.set('n', '<leader>q',   ':FzfLua diagnostics_document<CR>', silent )
@@ -39,4 +41,3 @@ vim.keymap.set("n", "<leader>ql", function() require("persistence").load({ last 
 vim.keymap.set("n", "<leader>qd", function() require("persistence").stop() end)
 
 -- git blame
-vim.keymap.set( 'n', '<F12>', ':BlameToggle<CR>', silent )

@@ -15,8 +15,15 @@ fzf.setup({
         ["ctrl-u"] = "half-page-up",
         ["ctrl-d"] = "half-page-down",
       },
+      builtin = {
+        ["<c-w>"] = "toggle-preview-wrap",
+        ["<c-p>"] = "toggle-preview",
+        ["<a-f>"] = "toggle-fullscreen",
+
+      }
     },
   },
+
 
   winopts = {
     border = "rounded",
