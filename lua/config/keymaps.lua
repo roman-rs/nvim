@@ -12,13 +12,15 @@ vim.keymap.set('i', 'jj', '<Esc>', silent )
 -- FzfLua mappings
 vim.keymap.set('n', "<C-p>", ':FzfLua files<CR>', silent )
 vim.keymap.set('n', "<C-g>", ':FzfLua grep<CR>', silent )
-vim.keymap.set('n', '<leader>lca', ':FzfLua lsp_code_actions<CR>', silent )
-vim.keymap.set('n', '<leader>gr',  ':FzfLua lsp_references<CR>', silent )
-vim.keymap.set('n', '<leader>gd',  ':FzfLua lsp_definitions<CR>', silent )
+vim.keymap.set('n', "<A-g>", ':FzfLua grep_cword<CR>', silent )
+vim.keymap.set('n', '<leader>a',   ':FzfLua lsp_code_actions<CR>', silent )
+vim.keymap.set('n', '<leader>r',   ':FzfLua lsp_references<CR>', silent )
+vim.keymap.set('n', '<leader>d',   ':FzfLua lsp_definitions<CR>', silent )
+vim.keymap.set('n', '<leader>D',   ':FzfLua lsp_typedefs<CR>', silent )
+vim.keymap.set('n', '<leader>f',   ':FzfLua lsp_finder<CR>', silent )
 vim.keymap.set('n', '<leader>gs',  ':FzfLua git_status<CR>', silent )
 vim.keymap.set('n', '<leader>gb',  ':FzfLua git_blame<CR>', silent )
-vim.keymap.set('n', '<leader>D',   ':FzfLua lsp_typedefs<CR>', silent )
-vim.keymap.set('n', '<leader>gh',  ':FzfLua command_history<CR>', silent )
+vim.keymap.set('n', '<leader>h',   ':FzfLua command_history<CR>', silent )
 vim.keymap.set('n', '<leader>q',   ':FzfLua diagnostics_document<CR>', silent )
 -- quit all
 --vim.keymap.set('n', ':q', ':qa<CR>', { noremap = true, silent = true })
@@ -32,7 +34,7 @@ vim.keymap.set('n', '<C-N><C-N>', ':set invnumber<CR>', silent )
 
 -- persistence.nvim mappings
 -- load the session for the current directory
-vim.keymap.set("n", "<leader>qs", function() require("persistence").load() end)
+vim.keymap.set("n", "<leader>qs", function() require("persistence").save() end)
 -- select a session to load
 vim.keymap.set("n", "<leader>qS", function() require("persistence").select() end)
 -- load the last session

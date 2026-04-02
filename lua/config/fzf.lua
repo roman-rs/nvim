@@ -19,11 +19,20 @@ fzf.setup({
         ["<c-w>"] = "toggle-preview-wrap",
         ["<c-p>"] = "toggle-preview",
         ["<a-f>"] = "toggle-fullscreen",
+        ["<a-j>"] = "preview-page-down",
+        ["<a-k>"] = "preview-page-up",
 
       }
     },
   },
 
+
+  lsp = {
+    code_actions = {
+      previewer = "codeaction_native",
+      preview_pager = "delta --side-by-side --width=$FZF_PREVIEW_COLUMNS",
+    },
+  },
 
   winopts = {
     border = "rounded",
