@@ -33,7 +33,7 @@ vim.opt.sidescrolloff = 2
 vim.opt.hidden = true
 
 -- enable virtual edit in vblock mode, and one past the end
-vim.g.virtualedit=block,onemore
+vim.opt.virtualedit = "block,onemore"
 
 -- Show the cursor line and column
 vim.opt.number = true
@@ -42,25 +42,23 @@ vim.opt.termguicolors = true
 
 vim.opt.winborder = "rounded"
 
+-- OSC 52 clipboard: works over SSH, with or without tmux
+-- (tmux needs: set -g set-clipboard on; set -g allow-passthrough on)
+vim.g.clipboard = {
+  name = "OSC 52",
+  copy = {
+    ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
+    ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
+  },
+  paste = {
+    ["+"] = function()
+      -- Paste from the unnamed register (local buffer) since OSC 52
+      -- does not support reading the clipboard back over SSH
+      return { vim.fn.split(vim.fn.getreg(""), "\n"), vim.fn.getregtype("") }
+    end,
+    ["*"] = function()
+      return { vim.fn.split(vim.fn.getreg(""), "\n"), vim.fn.getregtype("") }
+    end,
+  },
+}
 vim.opt.clipboard = "unnamedplus"
-
--- local function paste()
---   return {
---     vim.fn.split(vim.fn.getreg(""), "\n"),
---     vim.fn.getregtype(""),
---   }
--- end
---
--- if vim.env.TMUX == nil  then
---   vim.g.clipboard = {
---     name = "OSC 52",
---     copy = {
---       ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
---       ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
---     },
---     paste = {
---       ["+"] = paste,
---       ["*"] = paste,
---     },
---   }
--- end

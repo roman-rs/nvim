@@ -1,5 +1,4 @@
 return {
-  {"simrat39/rust-tools.nvim"},
   { "neovim/nvim-lspconfig" },
   -- { "RishabhRD/nvim-lsputils",
   --   keys = {

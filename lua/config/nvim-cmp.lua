@@ -24,14 +24,14 @@ local custom_clangd_on_attach = function(client, bufnr)
   end
 
   -- Enable completion triggered by <c-x><c-o>
-  vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
+  vim.bo[bufnr].omnifunc = 'v:lua.vim.lsp.omnifunc'
 
   -- Mappings.
-  local opts = { noremap=true, silent=true }
+  local buf_opts = { noremap=true, silent=true, buffer=bufnr }
   -- See `:help vim.lsp.*` for documentation on any of the below functions
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>sh', '<cmd>LspClangdSwitchSourceHeader<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>rn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<F5>', '<cmd>wa<CR><cmd>!make -j8 <CR>', opts );
+  vim.keymap.set('n', '<leader>sh', '<cmd>LspClangdSwitchSourceHeader<CR>', buf_opts)
+  vim.keymap.set('n', '<leader>rn', '<cmd>lua vim.lsp.buf.rename()<CR>', buf_opts)
+  vim.keymap.set('n', '<F5>', '<cmd>wa<CR><cmd>!make -j8 <CR>', buf_opts)
   --vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>e', '<cmd>lua vim.diagnostic.open_float()<CR>', opts)
   --vim.api.nvim_buf_set_keymap(bufnr, 'n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
   --vim.api.nvim_buf_set_keymap(bufnr, 'n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
@@ -56,8 +56,8 @@ local custom_rust_on_attach = function(client, bufnr)
   end
 
   -- Mappings.
-  local opts = { noremap=true, silent=true }
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<F5>', '<cmd>wa<CR><cmd>!cargo run<CR>', opts );
+  local buf_opts = { noremap=true, silent=true, buffer=bufnr }
+  vim.keymap.set('n', '<F5>', '<cmd>wa<CR><cmd>!cargo run<CR>', buf_opts)
 end
 
 local custom_all_on_attach = function(client, bufnr)
@@ -99,59 +99,41 @@ for _, server in ipairs(servers) do
   --  })
 
   elseif server == "rust-analyzer" then
-    --local existing_on_attach = vim.lsp.config[server].on_attach
-
     vim.lsp.config(server, {
       cmd = { "rust-analyzer" },
       capabilities = capabilities,
-      filetypes = { "rust", "rs" },
+      filetypes = { "rust" },
       settings = {
         ["rust-analyzer"] = {
-          cargo = { allFeatures = true },
+          cargo = {
+            allFeatures = true,
+            buildScripts = { enable = true },
+          },
           checkOnSave = { command = "clippy" },
+          imports = {
+            granularity = { group = "module" },
+            prefix = "self",
+          },
+          procMacro = { enable = true },
         }
       },
-
       on_attach = function(client, bufnr)
-        if existing_on_attach then
-          existing_on_attach(client, bufnr)
-        end
         custom_rust_on_attach(client, bufnr)
       end,
-
-      settings = {
-        ["rust-analyzer"] = {
-            imports = {
-                granularity = {
-                    group = "module",
-                },
-                prefix = "self",
-            },
-            cargo = {
-                buildScripts = {
-                    enable = true,
-                },
-            },
-            procMacro = {
-                enable = true
-            },
-        }
-      }
     })
 
   elseif server == "perlnavigator" then
-    --local existing_on_attach = vim.lsp.config[server].on_attach
     vim.lsp.config(server, {
       cmd = { "perlnavigator" },
       capabilities = capabilities,
-      filetypes = { "perl", "pm", "pl", "t" },
+      filetypes = { "perl" },
     })
 
   elseif server == "python-lsp-server" then
     vim.lsp.config(server, {
       cmd = { "pylsp" },
       capabilities = capabilities,
-      filetypes = { "py", "python" },
+      filetypes = { "python" },
       settings = {
         pylsp = {
           plugins = {

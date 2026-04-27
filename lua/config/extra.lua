@@ -1,3 +1,4 @@
+local silent = { silent = true }
 
 -- General settings --
 
@@ -24,21 +25,20 @@ vim.api.nvim_set_hl(0, "ExtraWhitespace", {
   bg = "red"
 })
 
-extra_ws = true;
-hi_ws_match0 = vim.fn.matchadd("ExtraWhitespace", [[\s\+$]])
-hi_ws_match1 = vim.fn.matchadd("ExtraWhitespace", [[^\s\+$]])
+local extra_ws = true
+local hi_ws_match0 = vim.fn.matchadd("ExtraWhitespace", [[\s\+$]])
+local hi_ws_match1 = vim.fn.matchadd("ExtraWhitespace", [[^\s\+$]])
 
-function toggleHI()
+local function toggleHI()
   if extra_ws == false then
     hi_ws_match0 = vim.fn.matchadd("ExtraWhitespace", [[\s\+$]])
     hi_ws_match1 = vim.fn.matchadd("ExtraWhitespace", [[^\s\+$]])
-    extra_ws = true;
+    extra_ws = true
   else
-    --vim.fn.matchdelete(vim.fn.matcharg(0, "ExtraWhitespace"))
     vim.fn.matchdelete(hi_ws_match0)
     vim.fn.matchdelete(hi_ws_match1)
-    extra_ws = false;
+    extra_ws = false
   end
 end
-vim.keymap.set( 'n', '<leader>ws', toggleHI, silent )
+vim.keymap.set( 'n', '<leader>ws', toggleHI, silent)
 
