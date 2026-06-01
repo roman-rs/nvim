@@ -47,7 +47,6 @@ fzf.setup({
     -- Use 'fd' for faster file search if installed
     --cmd = "fd --type f --hidden --exclude .git",
 
-    cmd       = "rg --files",
     find_opts = [[-type f \! -path '*/.git/*']],
     rg_opts   = [[--color=never --hidden --files -g "!.git"]],
     fd_opts   = [[--color=never --hidden --type f --type l --exclude .git]],
