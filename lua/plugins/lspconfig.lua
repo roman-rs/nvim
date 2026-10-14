@@ -24,5 +24,15 @@ return {
       }
     },
     enabled = true,
+  },
+  { "nvimdev/lspsaga.nvim",
+    config = function()
+        require('lspsaga').setup({})
+    end,
+    dependencies = {
+        'nvim-tree/nvim-web-devicons', -- optional
+        'nvim-treesitter/nvim-treesitter' -- optional
+    },
+    enabled = true,
   }
 }

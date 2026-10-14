@@ -19,7 +19,7 @@ vim.keymap.set('n', '<leader>Q',    ':lua vim.diagnostic.setloclist()<CR>',    o
 local custom_clangd_on_attach = function(client, bufnr)
   if vim.wo.diff then
     -- don't attach to diff buffers
-    client.stop()
+    client:stop()
     return
   end
 
@@ -51,7 +51,7 @@ end
 local custom_rust_on_attach = function(client, bufnr)
   if vim.wo.diff then
     -- don't attach to diff buffers
-    client.stop()
+    client:stop()
     return
   end
 
@@ -264,4 +264,3 @@ cmp.setup.cmdline(':', {
   }),
   matching = { disallow_symbol_nonprefix_matching = false }
 })
-
