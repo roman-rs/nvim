@@ -14,6 +14,10 @@ fzf.setup({
         ["ctrl-q"] = "select-all+accept",
         ["ctrl-u"] = "half-page-up",
         ["ctrl-d"] = "half-page-down",
+        ["ctrl-w"] = "toggle-preview-wrap",
+        ["ctrl-p"] = "toggle-preview",
+        ["alt-j"] = "preview-page-down",
+        ["alt-k"] = "preview-page-up",
       },
       builtin = {
         ["<c-w>"] = "toggle-preview-wrap",
@@ -29,8 +33,7 @@ fzf.setup({
 
   lsp = {
     code_actions = {
-      previewer = "codeaction_native",
-      preview_pager = "delta --side-by-side --width=$FZF_PREVIEW_COLUMNS",
+      previewer = vim.fn.executable("delta") == 1 and "codeaction_native" or "codeaction",
     },
   },
 
