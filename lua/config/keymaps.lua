@@ -48,9 +48,9 @@ vim.keymap.set("x", "<A-g>", "<cmd>FzfLua grep_visual<CR>", {
 })
 
 -- Show complete Git status output, including branch and upstream information.
-vim.keymap.set("n", "<leader>gs", "<cmd>Git --paginate status<CR>", {
+vim.keymap.set("n", "<leader>gs", function() require("config.git-status").open() end, {
   silent = true,
-  desc = "Full Git status",
+  desc = "Floating Git status",
 })
 
 vim.keymap.set('n', '<leader>m',   ':Markview toggle<CR>', silent)
