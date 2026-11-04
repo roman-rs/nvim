@@ -11,19 +11,44 @@ vim.keymap.set('i', 'jj', '<Esc>', silent)
 --vim.keymap.set('n', '<leader>sh',  ':LspClangdSwitchSourceHeader<CR>', silent)
 
 -- FzfLua mappings
-vim.keymap.set('n', "<C-p>", ':FzfLua files<CR>', silent)
-vim.keymap.set('n', "<C-g>", ':FzfLua grep<CR>', silent)
-vim.keymap.set('n', "<A-g>", ':FzfLua grep_cword<CR>', silent)
+local fzf_mappings = {
+  { "<C-p>", "files", "Find files" },
+  { "<C-g>", "grep", "Search project" },
+  { "<A-g>", "grep_cword", "Search word under cursor" },
+  { "<leader>/", "live_grep", "Live search project" },
+  { "<leader>,", "buffers", "Switch buffer" },
+  { "<leader>a", "lsp_code_actions", "Code actions" },
+  { "<leader>r", "lsp_references", "Find references" },
+  { "<leader>d", "lsp_definitions", "Go to definition" },
+  { "<leader>D", "lsp_typedefs", "Go to type definition" },
+  { "<leader>f", "lsp_finder", "Find LSP locations" },
+  { "<leader>gs", "git_status", "Git status" },
+  { "<leader>gb", "git_blame", "Git blame" },
+  { "<leader>ch", "command_history", "Command history" },
+  { "<leader>sr", "oldfiles", "Recent files" },
+  { "<leader>sR", "resume", "Resume last picker" },
+  { "<leader>sb", "blines", "Search current buffer lines" },
+  { "<leader>ss", "lsp_document_symbols", "Document symbols" },
+  { "<leader>sS", "lsp_live_workspace_symbols", "Workspace symbols" },
+  { "<leader>sd", "diagnostics_workspace", "Workspace diagnostics" },
+  { "<leader>sD", "diagnostics_document", "Document diagnostics" },
+  { "<leader>sq", "quickfix", "Search quickfix list" },
+  { "<leader>sk", "keymaps", "Search keymaps" },
+  { "<leader>sh", "helptags", "Search help" },
+}
+
+for _, mapping in ipairs(fzf_mappings) do
+  vim.keymap.set("n", mapping[1], "<cmd>FzfLua " .. mapping[2] .. "<CR>", {
+    silent = true,
+    desc = mapping[3],
+  })
+end
+vim.keymap.set("x", "<A-g>", "<cmd>FzfLua grep_visual<CR>", {
+  silent = true,
+  desc = "Search selection",
+})
+
 vim.keymap.set('n', '<leader>m',   ':Markview toggle<CR>', silent)
-vim.keymap.set('n', '<leader>a',   ':FzfLua lsp_code_actions<CR>', silent)
-vim.keymap.set('n', '<leader>r',   ':FzfLua lsp_references<CR>', silent)
-vim.keymap.set('n', '<leader>d',   ':FzfLua lsp_definitions<CR>', silent)
-vim.keymap.set('n', '<leader>D',   ':FzfLua lsp_typedefs<CR>', silent)
-vim.keymap.set('n', '<leader>f',   ':FzfLua lsp_finder<CR>', silent)
-vim.keymap.set('n', '<leader>gs',  ':FzfLua git_status<CR>', silent)
-vim.keymap.set('n', '<leader>gb',  ':FzfLua git_blame<CR>', silent)
-vim.keymap.set('n', '<leader>ch',  ':FzfLua command_history<CR>', silent)
-vim.keymap.set('n', '<leader>q',   ':FzfLua diagnostics_document<CR>', silent)
 -- quit all
 --vim.keymap.set('n', ':q', ':qa<CR>', { noremap = true, silent = true })
 
