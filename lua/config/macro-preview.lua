@@ -1,4 +1,5 @@
 local M = {}
+local preview_delay = 800
 
 -- clangd hover contains compiler-expanded tokens, including nested macros.
 local function macro_contents(result)
@@ -140,7 +141,8 @@ function M.attach(client, bufnr)
     if not loc then invalidate(); return end
     if not manual and state.dismissed == loc.key then return end
     state.dismissed = nil
-    if state.key == loc.key and not manual then return end
+    if state.key == loc.key and not manual and state.popup
+        and vim.api.nvim_win_is_valid(state.popup) then return end
     invalidate()
     local tick = vim.api.nvim_buf_get_changedtick(bufnr)
     if state.tick ~= tick then state.cache = {}; state.tick = tick end
@@ -151,7 +153,7 @@ function M.attach(client, bufnr)
     if manual then
       request(loc, generation)
     else
-      vim.defer_fn(function() request(loc, generation) end, 350)
+      vim.defer_fn(function() request(loc, generation) end, preview_delay)
     end
   end
 

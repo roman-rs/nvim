@@ -37,6 +37,8 @@ vim.opt.virtualedit = "block,onemore"
 
 -- Show the cursor line and column
 vim.opt.number = true
+-- Reserve the sign gutter so diagnostics and Lspsaga's lightbulb cannot shift text.
+vim.opt.signcolumn = "yes:1"
 
 vim.opt.termguicolors = true
 
