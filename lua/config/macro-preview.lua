@@ -27,8 +27,35 @@ local function macro_contents(result)
     return { name = name, lines = expansion, expanded = true }
   end
   if #code == 0 then code = { "// No macro definition returned by clangd." } end
-  table.insert(code, 1, "// Expansion unavailable (empty, oversized, or not an invocation).")
+  table.insert(code, 1, "// clangd returned a definition without expansion tokens.")
   return { name = name, lines = code, expanded = false }
+end
+
+-- Walk parsed calls rather than guessing parentheses inside strings/comments.
+local function enclosing_calls(bufnr, cursor)
+  local parsed = pcall(function() vim.treesitter.get_parser(bufnr):parse() end)
+  if not parsed then return {} end
+  local ok, node = pcall(vim.treesitter.get_node, {
+    bufnr = bufnr, pos = { cursor[1] - 1, cursor[2] }, ignore_injections = true,
+  })
+  if not ok then return {} end
+  local calls = {}
+  while node and #calls < 8 do
+    if node:type() == "call_expression" then
+      local callee = node:field("function")[1]
+      if callee and callee:type() == "identifier" then
+        local row, col = callee:start()
+        -- The hovered macro's own call is already covered by the first request.
+        local end_row, end_col = callee:end_()
+        if cursor[1] - 1 ~= row or cursor[2] < col
+            or cursor[1] - 1 ~= end_row or cursor[2] >= end_col then
+          calls[#calls + 1] = { row = row, col = col }
+        end
+      end
+    end
+    node = node:parent()
+  end
+  return calls
 end
 
 function M.attach(client, bufnr)
@@ -91,7 +118,8 @@ function M.attach(client, bufnr)
       focusable = true,
       max_width = math.max(20, math.floor(vim.o.columns * 0.8)),
       max_height = math.max(3, math.floor(vim.o.lines * 0.6)),
-      title = " " .. contents.name .. (contents.expanded and " — fully expanded " or " — definition "),
+      title = " " .. contents.name .. (contents.enclosing and " — enclosing expansion "
+        or contents.expanded and " — fully expanded " or " — definition "),
       title_pos = "center",
       footer = " <leader>mx: focus | q / Esc: close ",
       footer_pos = "center",
@@ -117,6 +145,45 @@ function M.attach(client, bufnr)
       return
     end
     local params = vim.lsp.util.make_position_params(loc.win, client.offset_encoding)
+    local function finish(contents)
+      state.cache[loc.key] = contents or false
+      show(contents)
+    end
+    local function find_enclosing(definition)
+      local calls = enclosing_calls(bufnr, loc.cursor)
+      local function next_call(index)
+        if not valid(loc, generation) or client:is_stopped() then return end
+        local call = calls[index]
+        if not call then
+          local lines = { "// No expansion returned for this token or its enclosing calls." }
+          vim.list_extend(lines, definition.lines)
+          definition.lines = lines
+          finish(definition)
+          return
+        end
+        local outer_params = vim.deepcopy(params)
+        local line = vim.api.nvim_buf_get_lines(bufnr, call.row, call.row + 1, false)[1]
+        outer_params.position = {
+          line = call.row,
+          character = vim.str_utfindex(line, client.offset_encoding, call.col, false),
+        }
+        local accepted, id = client:request("textDocument/hover", outer_params, function(err, result)
+          if not valid(loc, generation) then return end
+          state.request = nil
+          local outer = not err and macro_contents(result) or nil
+          if outer and outer.expanded then
+            outer.enclosing = true
+            table.insert(outer.lines, 1, "// Full expansion of enclosing " .. outer.name .. "(...)")
+            table.insert(outer.lines, 2, "// " .. definition.name .. " is referenced inside this invocation.")
+            finish(outer)
+          else
+            next_call(index + 1)
+          end
+        end, bufnr)
+        if accepted then state.request = id else next_call(index + 1) end
+      end
+      next_call(1)
+    end
     local accepted, id = client:request("textDocument/hover", params, function(err, result)
       if not valid(loc, generation) then return end
       state.request = nil
@@ -126,8 +193,11 @@ function M.attach(client, bufnr)
         return
       end
       local contents = macro_contents(result)
-      state.cache[loc.key] = contents or false
-      show(contents)
+      if contents and not contents.expanded then
+        find_enclosing(contents)
+      else
+        finish(contents)
+      end
     end, bufnr)
     if accepted then state.request = id else state.focus = false end
   end
