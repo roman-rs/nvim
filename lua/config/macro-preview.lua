@@ -58,6 +58,72 @@ local function enclosing_calls(bufnr, cursor)
   return calls
 end
 
+local function invocation_end(bufnr, row, col)
+  local depth, quote, block_comment, started = 0, nil, false, false
+  local lines = vim.api.nvim_buf_get_lines(bufnr, row, math.min(row + 200, vim.api.nvim_buf_line_count(bufnr)), false)
+  for index, line in ipairs(lines) do
+    local i = index == 1 and col + 1 or 1
+    while i <= #line do
+      local char, pair = line:sub(i, i), line:sub(i, i + 1)
+      if block_comment then
+        if pair == "*/" then block_comment = false; i = i + 1 end
+      elseif quote then
+        if char == "\\" then i = i + 1 elseif char == quote then quote = nil end
+      elseif pair == "//" then
+        break
+      elseif pair == "/*" then
+        block_comment = true; i = i + 1
+      elseif char == '"' or char == "'" then
+        quote = char
+      elseif char == "(" then
+        depth = depth + 1; started = true
+      elseif char == ")" and started then
+        depth = depth - 1
+        if depth == 0 then return row + index - 1, i end
+      end
+      i = i + 1
+    end
+  end
+end
+
+local function generated_declaration(bufnr, position, encoding)
+  local line = vim.api.nvim_buf_get_lines(bufnr, position.line, position.line + 1, false)[1]
+  if not line then return end
+  local col = vim.str_byteindex(line, encoding, position.character, false)
+  local ok, node = pcall(function()
+    vim.treesitter.get_parser(bufnr):parse()
+    return vim.treesitter.get_node({ bufnr = bufnr, pos = { position.line, col } })
+  end)
+  if not ok then return end
+  local invocation
+  while node and node:type() ~= "translation_unit" do
+    if node:type() == "macro_type_specifier" or node:type() == "call_expression" then
+      invocation = node
+    elseif node:type() == "declaration" then
+      if not invocation then return end
+      local callee = invocation:field(invocation:type() == "macro_type_specifier" and "name" or "function")[1]
+      if not callee or callee:type() ~= "identifier" then return end
+      local row, start_col = callee:start()
+      local sr, sc = node:start()
+      local ir, ic = invocation:start()
+      local jr, jc = invocation_end(bufnr, row, start_col)
+      if not jr then return end
+      -- Macro-heavy files can confuse the C parser into merging later declarations.
+      -- Only retain the immediate terminator, never unrelated trailing source.
+      local suffix = table.concat(vim.api.nvim_buf_get_lines(bufnr, jr,
+        math.min(jr + 3, vim.api.nvim_buf_line_count(bufnr)), false), "\n"):sub(jc + 1)
+      suffix = suffix:match("^%s*;")
+      if not suffix then return end
+      return {
+        row = row, col = start_col,
+        prefix = table.concat(vim.api.nvim_buf_get_text(bufnr, sr, sc, ir, ic, {}), "\n"),
+        suffix = suffix,
+      }
+    end
+    node = node:parent()
+  end
+end
+
 function M.attach(client, bufnr)
   if client.name ~= "clangd" or vim.b[bufnr].macro_preview_attached then return end
   if vim.bo[bufnr].filetype ~= "c" and vim.bo[bufnr].filetype ~= "cpp" then return end
@@ -95,6 +161,7 @@ function M.attach(client, bufnr)
     return {
       win = win,
       cursor = cursor,
+      name = line:sub(first, last),
       key = table.concat({ vim.api.nvim_buf_get_changedtick(bufnr), cursor[1], first, win }, ":"),
     }
   end
@@ -118,7 +185,9 @@ function M.attach(client, bufnr)
       focusable = true,
       max_width = math.max(20, math.floor(vim.o.columns * 0.8)),
       max_height = math.max(3, math.floor(vim.o.lines * 0.6)),
-      title = " " .. contents.name .. (contents.enclosing and " — enclosing expansion "
+      title = " " .. contents.name .. (contents.declaration and " — declaration "
+        or contents.enclosing and " — enclosing expansion "
+        or contents.arguments and " — expansion + declarations "
         or contents.expanded and " — fully expanded " or " — definition "),
       title_pos = "center",
       footer = " <leader>mx: focus | q / Esc: close ",
@@ -155,9 +224,11 @@ function M.attach(client, bufnr)
         if not valid(loc, generation) or client:is_stopped() then return end
         local call = calls[index]
         if not call then
-          local lines = { "// No expansion returned for this token or its enclosing calls." }
-          vim.list_extend(lines, definition.lines)
-          definition.lines = lines
+          if definition then
+            local lines = { "// No expansion returned for this token or its enclosing calls." }
+            vim.list_extend(lines, definition.lines)
+            definition.lines = lines
+          end
           finish(definition)
           return
         end
@@ -174,7 +245,7 @@ function M.attach(client, bufnr)
           if outer and outer.expanded then
             outer.enclosing = true
             table.insert(outer.lines, 1, "// Full expansion of enclosing " .. outer.name .. "(...)")
-            table.insert(outer.lines, 2, "// " .. definition.name .. " is referenced inside this invocation.")
+            table.insert(outer.lines, 2, "// Cursor argument: " .. loc.name)
             finish(outer)
           else
             next_call(index + 1)
@@ -183,6 +254,175 @@ function M.attach(client, bufnr)
         if accepted then state.request = id else next_call(index + 1) end
       end
       next_call(1)
+    end
+    local find_declaration
+    find_declaration = function(fallback, definition_params, symbol_name, done, searched, resolved_target)
+      local function handle_definition(err, result)
+        if not valid(loc, generation) then return end
+        state.request = nil
+        local target = not err and result and (result.uri and result or result[1])
+        local uri = target and (target.uri or target.targetUri)
+        local range = target and (target.targetSelectionRange or target.range)
+        if not uri or not range then fallback(); return end
+        local target_buf = vim.uri_to_bufnr(uri)
+        if not vim.api.nvim_buf_is_loaded(target_buf) then
+          -- Definition inspection is read-only and must not compete with another editor's swapfile.
+          vim.bo[target_buf].swapfile = false
+          local loaded = pcall(vim.fn.bufload, target_buf)
+          if not loaded then fallback(); return end
+        end
+        local declaration = generated_declaration(target_buf, range.start, client.offset_encoding)
+        local ordinary = not declaration
+        if ordinary and not done then fallback(); return end
+        -- Ask the same clangd instance that resolved this symbol, including for headers.
+        if not vim.lsp.buf_is_attached(target_buf, client.id)
+            and not vim.lsp.buf_attach_client(target_buf, client.id) then fallback(); return end
+        local target_tick = vim.api.nvim_buf_get_changedtick(target_buf)
+        local hover_params = {
+          textDocument = { uri = uri },
+          position = ordinary and range.start or {
+            line = declaration.row,
+            character = vim.str_utfindex(vim.api.nvim_buf_get_lines(target_buf,
+              declaration.row, declaration.row + 1, false)[1], client.offset_encoding, declaration.col, false),
+          },
+        }
+        local requested, hover_id = client:request("textDocument/hover", hover_params, function(hover_err, hover)
+          if not valid(loc, generation) then return end
+          state.request = nil
+          if not vim.api.nvim_buf_is_valid(target_buf)
+              or vim.api.nvim_buf_get_changedtick(target_buf) ~= target_tick then fallback(); return end
+          local expansion = not hover_err and macro_contents(hover)
+          local text, annotation
+          if ordinary then
+            if hover_err or not hover or not hover.contents then fallback(); return end
+            local hover_lines = vim.lsp.util.convert_input_to_markdown_lines(hover.contents)
+            local markup = table.concat(hover_lines, "\n")
+            if not markup:match("### variable") and not markup:match("### function") then fallback(); return end
+            local code, in_code = {}, false
+            for _, line in ipairs(hover_lines) do
+              if line:match("^```") then in_code = not in_code
+              elseif in_code then code[#code + 1] = line end
+            end
+            if #code == 0 then fallback(); return end
+            text = table.concat(code, "\n")
+            if not text:match(";%s*$") then text = text .. ";" end
+            annotation = text:match("^extern%s") and " — extern declaration; initializer not resolved by clangd"
+              or " — symbol declaration reported by clangd"
+            if text:match("^extern%s") and not searched and vim.fn.executable("rg") == 1
+                and client.root_dir then
+              -- clangd may resolve an extern to the header before indexing its implementation.
+              -- Locate initializer candidates, then let clangd interpret the actual declaration.
+              local name = symbol_name or loc.name
+              vim.system({ "rg", "--line-number", "--no-heading", "--color=never",
+                "--glob", "*.{c,cc,cpp,cxx}", "\\b" .. name .. "\\s*(\\[[^]]*\\])?\\s*=", client.root_dir },
+                { text = true }, function(output)
+                  vim.schedule(function()
+                    if not valid(loc, generation) then return end
+                    local matches = vim.split((output.stdout or ""):gsub("\n$", ""), "\n", { trimempty = true })
+                    local file, row = (#matches == 1 and matches[1] or ""):match("([^\n]+):(%d+):[^\n]*")
+                    -- Multiple definitions may represent different build configurations.
+                    if not file then
+                      find_declaration(fallback, definition_params, symbol_name, done, true)
+                      return
+                    end
+                    local candidate = vim.fn.bufadd(file)
+                    if not vim.api.nvim_buf_is_loaded(candidate) then
+                      vim.bo[candidate].swapfile = false
+                      if not pcall(vim.fn.bufload, candidate) then fallback(); return end
+                    end
+                    if not vim.lsp.buf_is_attached(candidate, client.id)
+                        and not vim.lsp.buf_attach_client(candidate, client.id) then fallback(); return end
+                    local line = vim.api.nvim_buf_get_lines(candidate, tonumber(row) - 1, tonumber(row), false)[1]
+                    local col = line and line:find(name, 1, true)
+                    if not col then fallback(); return end
+                    local candidate_params = {
+                      textDocument = { uri = vim.uri_from_bufnr(candidate) },
+                      position = { line = tonumber(row) - 1,
+                        character = vim.str_utfindex(line, client.offset_encoding, col - 1, false) },
+                    }
+                    find_declaration(fallback, candidate_params, name, done, true, {
+                      uri = candidate_params.textDocument.uri,
+                      range = { start = candidate_params.position, ["end"] = candidate_params.position },
+                    })
+                  end)
+                end)
+              return
+            end
+          else
+            if not expansion or not expansion.expanded then fallback(); return end
+            text = declaration.prefix .. table.concat(expansion.lines, "\n") .. declaration.suffix
+            annotation = " — generated by " .. expansion.name
+          end
+          local contents = { name = symbol_name or loc.name, declaration = true, expanded = not ordinary }
+          local function display(formatted)
+            if not valid(loc, generation) then return end
+            contents.lines = vim.split(formatted:gsub("\n$", ""), "\n", { plain = true })
+            table.insert(contents.lines, 1, "// " .. vim.fn.fnamemodify(vim.uri_to_fname(uri), ":~:.")
+              .. ":" .. ((declaration and declaration.row or range.start.line) + 1) .. annotation)
+            local callback = done or finish
+            callback(contents)
+          end
+          local formatter
+          for _, cmd in ipairs({ "clang-format", "clang-format-18" }) do
+            if vim.fn.executable(cmd) == 1 then formatter = cmd; break end
+          end
+          if formatter then
+            vim.system({ formatter, "--style=file", "--assume-filename=" .. vim.uri_to_fname(uri) }, {
+              stdin = text, text = true,
+            }, function(output)
+              vim.schedule(function() display(output.code == 0 and output.stdout or text) end)
+            end)
+          else
+            display(text)
+          end
+        end, target_buf)
+        if requested then state.request = hover_id else fallback() end
+      end
+      if resolved_target then handle_definition(nil, { resolved_target }); return end
+      local accepted, id = client:request("textDocument/definition", definition_params or params,
+        handle_definition, bufnr)
+      if accepted then state.request = id else fallback() end
+    end
+    local function add_argument_declarations(contents)
+      local ok, node = pcall(function()
+        vim.treesitter.get_parser(bufnr):parse()
+        return vim.treesitter.get_node({ bufnr = bufnr, pos = { loc.cursor[1] - 1, loc.cursor[2] } })
+      end)
+      if not ok then finish(contents); return end
+      while node and node:type() ~= "call_expression" do node = node:parent() end
+      local arguments = node and node:field("arguments")[1]
+      if not arguments then finish(contents); return end
+      local symbols, seen = {}, {}
+      -- Only direct identifier arguments: do not mistake members, strings or nested calls for symbols.
+      for argument in arguments:iter_children() do
+        if argument:type() == "identifier" then
+          local name = vim.treesitter.get_node_text(argument, bufnr)
+          if not seen[name] and #symbols < 8 then
+            local row, col = argument:start()
+            symbols[#symbols + 1] = { name = name, row = row, col = col }
+            seen[name] = true
+          end
+        end
+      end
+      local function next_symbol(index)
+        if not valid(loc, generation) then return end
+        local symbol = symbols[index]
+        if not symbol then finish(contents); return end
+        local symbol_params = vim.deepcopy(params)
+        symbol_params.position = {
+          line = symbol.row,
+          character = vim.str_utfindex(vim.api.nvim_buf_get_lines(bufnr, symbol.row,
+            symbol.row + 1, false)[1], client.offset_encoding, symbol.col, false),
+        }
+        find_declaration(function() next_symbol(index + 1) end, symbol_params, symbol.name, function(declaration)
+          contents.arguments = true
+          contents.lines[#contents.lines + 1] = ""
+          contents.lines[#contents.lines + 1] = "// Argument declaration: " .. symbol.name
+          vim.list_extend(contents.lines, declaration.lines)
+          next_symbol(index + 1)
+        end)
+      end
+      next_symbol(1)
     end
     local accepted, id = client:request("textDocument/hover", params, function(err, result)
       if not valid(loc, generation) then return end
@@ -193,10 +433,14 @@ function M.attach(client, bufnr)
         return
       end
       local contents = macro_contents(result)
-      if contents and not contents.expanded then
-        find_enclosing(contents)
+      if not contents or not contents.expanded then
+        if not contents then
+          find_declaration(function() find_enclosing(contents) end)
+        else
+          find_enclosing(contents)
+        end
       else
-        finish(contents)
+        add_argument_declarations(contents)
       end
     end, bufnr)
     if accepted then state.request = id else state.focus = false end
