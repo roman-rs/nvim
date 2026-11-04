@@ -25,6 +25,7 @@ local custom_clangd_on_attach = function(client, bufnr)
 
   -- Enable completion triggered by <c-x><c-o>
   vim.bo[bufnr].omnifunc = 'v:lua.vim.lsp.omnifunc'
+  require("config.macro-preview").attach(client, bufnr)
 
   -- Mappings.
   local buf_opts = { noremap=true, silent=true, buffer=bufnr }
