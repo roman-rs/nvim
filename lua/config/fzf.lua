@@ -67,7 +67,7 @@ fzf.setup({
   },
 
   buffers = {
-    show_unloaded = false,
+    show_unloaded = true,
   },
 })
 
