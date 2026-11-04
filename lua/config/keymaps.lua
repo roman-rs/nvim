@@ -22,7 +22,6 @@ local fzf_mappings = {
   { "<leader>d", "lsp_definitions", "Go to definition" },
   { "<leader>D", "lsp_typedefs", "Go to type definition" },
   { "<leader>f", "lsp_finder", "Find LSP locations" },
-  { "<leader>gs", "git_status", "Git status" },
   { "<leader>gb", "git_blame", "Git blame" },
   { "<leader>ch", "command_history", "Command history" },
   { "<leader>sr", "oldfiles", "Recent files" },
@@ -46,6 +45,12 @@ end
 vim.keymap.set("x", "<A-g>", "<cmd>FzfLua grep_visual<CR>", {
   silent = true,
   desc = "Search selection",
+})
+
+-- Show complete Git status output, including branch and upstream information.
+vim.keymap.set("n", "<leader>gs", "<cmd>Git --paginate status<CR>", {
+  silent = true,
+  desc = "Full Git status",
 })
 
 vim.keymap.set('n', '<leader>m',   ':Markview toggle<CR>', silent)

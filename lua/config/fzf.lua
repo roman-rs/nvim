@@ -1,5 +1,4 @@
-
-local fzf = require'fzf-lua'
+local fzf = require("fzf-lua")
 
 -- Global setup.
 fzf.setup({
@@ -25,11 +24,10 @@ fzf.setup({
         ["<a-f>"] = "toggle-fullscreen",
         ["<a-j>"] = "preview-page-down",
         ["<a-k>"] = "preview-page-up",
-
-      }
+      },
     },
   },
-
+  fzf_colors = true,
 
   lsp = {
     code_actions = {
@@ -40,28 +38,36 @@ fzf.setup({
   winopts = {
     border = "rounded",
     preview = {
-      vertical = "down:65%",
-      layout = "vertical",
+      vertical = "down:45%",
+      horizontal = "right:60%",
+      layout = "flex",
+      flip_columns = 120,
     },
   },
 
-  -- Specific commands configuration
   files = {
-    -- Use 'fd' for faster file search if installed
-    --cmd = "fd --type f --hidden --exclude .git",
+    -- Use auto-detected fd/fdfind, rg, or find with upstream command options.
+    hidden = true,
+    follow = false,
+    no_ignore = false,
+    formatter = "path.filename_first",
+  },
 
-    find_opts = [[-type f \! -path '*/.git/*']],
-    rg_opts   = [[--color=never --hidden --files -g "!.git"]],
-    fd_opts   = [[--color=never --hidden --type f --type l --exclude .git]],
-    dir_opts  = [[/s/b/a:-d]],
+  grep = {
+    hidden = true,
+    follow = false,
+    no_ignore = false,
+    -- Keep Git internals out of searches even when ignored files are enabled.
+    rg_opts = [[--column --line-number --no-heading --color=always --smart-case --max-columns=4096 --glob '!.git' -e]],
+  },
 
-    -- Customize preview window
-    -- previewer = "bat", -- Use 'bat' for syntax-highlighted preview
-    --actions = {
-    --  ["default"] = actions.file_edit,
-    --  ["ctrl-t"] = actions.file_split,
-    --  ["ctrl-v"] = actions.file_vsplit,
-    --},
+  oldfiles = {
+    cwd_only = true,
+    include_current_session = true,
+  },
+
+  buffers = {
+    show_unloaded = false,
   },
 })
 
