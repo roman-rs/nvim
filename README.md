@@ -111,10 +111,6 @@ file for the full 40-character hashes.
 | `preservim/tagbar` | `07cb82474872` | Ctags-based symbol outline |
 | `MattesGroeger/vim-bookmarks` | `9cc5fa7ecc23` | Bookmarks |
 
-Copilot, CtrlP, Snacks, rust-tools, and the standalone whitespace-highlight plugin
-are disabled in the current plugin specs. Their dependencies are not required;
-the remaining Copilot entry in `lazy-lock.json` is not an enabled dependency.
-
 ### Tree-sitter parsers
 
 `lua/plugins/treesitter.lua` installs the following parsers. Their source revisions

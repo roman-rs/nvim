@@ -3,7 +3,6 @@
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 local servers = {
   "clangd",
-  --"GitHub Copilot",
   "rust-analyzer",
   "perlnavigator",
   "python-lsp-server",
@@ -92,12 +91,6 @@ for _, server in ipairs(servers) do
         custom_clangd_on_attach(client, bufnr)
       end
     })
-
-  --elseif server == "GitHub Copilot" then
-  --  vim.lsp.config(server, {
-  --    cmd = { "" },
-  --    capabilities = capabilities,
-  --  })
 
   elseif server == "rust-analyzer" then
     vim.lsp.config(server, {
