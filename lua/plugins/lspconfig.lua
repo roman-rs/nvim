@@ -1,6 +1,10 @@
 return {
   { "neovim/nvim-lspconfig" },
   { "hrsh7th/nvim-cmp",
+    event = { "InsertEnter", "CmdlineEnter" },
+    config = function()
+      require("config.nvim-cmp")()
+    end,
     dependencies = {
       { "hrsh7th/cmp-nvim-lsp" },
       { "hrsh7th/cmp-buffer" },
@@ -19,8 +23,12 @@ return {
     enabled = true,
   },
   { "nvimdev/lspsaga.nvim",
+    event = "LspAttach",
+    cmd = "Lspsaga",
     config = function()
-        require('lspsaga').setup({})
+        require('lspsaga').setup({
+          lightbulb = { debounce = 250 },
+        })
     end,
     dependencies = {
         'nvim-tree/nvim-web-devicons', -- optional

@@ -88,7 +88,18 @@ for _, server in ipairs(servers) do
         if existing_on_attach then
           existing_on_attach(client, bufnr)
         end
-        custom_clangd_on_attach(client, bufnr)
+        if vim.b[bufnr].macro_preview_inspection then
+          -- Inspection buffers retain clangd analysis, but defer editor mappings until displayed.
+          vim.api.nvim_create_autocmd("BufWinEnter", {
+            buffer = bufnr,
+            once = true,
+            callback = function()
+              if not client:is_stopped() then custom_clangd_on_attach(client, bufnr) end
+            end,
+          })
+        else
+          custom_clangd_on_attach(client, bufnr)
+        end
       end
     })
 
@@ -165,6 +176,7 @@ for _, server in ipairs(servers) do
   vim.lsp.enable(server)
 end
 
+local function setup_completion()
 local lspkind = require('lspkind')
 local cmp = require'cmp'
 
@@ -258,3 +270,8 @@ cmp.setup.cmdline(':', {
   }),
   matching = { disallow_symbol_nonprefix_matching = false }
 })
+-- Markview may already be loaded before completion is first requested.
+require("markview.integrations").register_cmp_source()
+end
+
+return setup_completion

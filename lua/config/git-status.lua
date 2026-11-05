@@ -1,6 +1,7 @@
 local M = {}
 
 function M.open()
+  require("fzf-lua") -- Load picker setup before reading its shared window options.
   local cwd = vim.fn.getcwd()
   local winopts = require("fzf-lua.config").globals.winopts
   local width = math.max(1, math.min(vim.o.columns - 2, math.floor(vim.o.columns * winopts.width)))

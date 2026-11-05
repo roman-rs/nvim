@@ -24,6 +24,7 @@ return {
     vim.api.nvim_create_autocmd("FileType", {
       callback = function(args)
         local buf = args.buf
+        if vim.b[buf].macro_preview_inspection then return end
         local ok, parser = pcall(vim.treesitter.get_parser, buf, nil, { error = false })
         if ok and parser then
           vim.treesitter.start(buf, parser:lang())
