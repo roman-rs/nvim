@@ -18,7 +18,7 @@ function M.open()
     border = winopts.border,
     title = " Git status ",
     title_pos = "center",
-    footer = " r: refresh | q / Esc: close ",
+    footer = " r: refresh | jj / q / Esc: close ",
     footer_pos = "center",
     style = "minimal",
   })
@@ -59,7 +59,7 @@ function M.open()
       vim.api.nvim_win_close(win, true)
     end
   end
-  for _, key in ipairs({ "q", "<Esc>" }) do
+  for _, key in ipairs({ "jj", "q", "<Esc>" }) do
     vim.keymap.set("n", key, close, { buffer = buf, silent = true, desc = "Close Git status" })
   end
   vim.keymap.set("n", "r", refresh, { buffer = buf, silent = true, desc = "Refresh Git status" })

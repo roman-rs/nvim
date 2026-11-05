@@ -37,6 +37,15 @@ fzf.setup({
 
   winopts = {
     border = "rounded",
+    on_create = function(event)
+      vim.keymap.set("t", "jj", function()
+        vim.api.nvim_chan_send(vim.bo[event.bufnr].channel, "\27")
+      end, {
+        buffer = event.bufnr,
+        silent = true,
+        desc = "Close fzf picker",
+      })
+    end,
     preview = {
       vertical = "down:45%",
       horizontal = "right:60%",

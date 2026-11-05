@@ -190,14 +190,14 @@ function M.attach(client, bufnr)
         or contents.arguments and " — expansion + declarations "
         or contents.expanded and " — fully expanded " or " — definition "),
       title_pos = "center",
-      footer = " <leader>mx: focus | q / Esc: close ",
+      footer = " <leader>mx: focus | jj / q / Esc: close ",
       footer_pos = "center",
       close_events = {},
     })
     state.popup = win
     vim.bo[preview].bufhidden = "wipe"
     vim.bo[preview].modifiable = false
-    for _, key in ipairs({ "q", "<Esc>" }) do
+    for _, key in ipairs({ "jj", "q", "<Esc>" }) do
       vim.keymap.set("n", key, function()
         state.dismissed = state.key
         invalidate()
