@@ -61,6 +61,18 @@ vim.keymap.set('n', '<leader>m',   ':Markview toggle<CR>', silent)
 vim.keymap.set( 'n', '<C-h>', ':bp<CR>', silent)
 vim.keymap.set( 'n', '<C-l>', ':bn<CR>', silent)
 
+-- Move the nearest split divider without changing focus (Alt is also called Meta).
+for _, mapping in ipairs({
+  { "<C-M-y>", "row", -5, "Move divider left" },
+  { "<C-M-o>", "row", 5, "Move divider right" },
+  { "<C-M-i>", "col", -5, "Move divider up" },
+  { "<C-M-u>", "col", 5, "Move divider down" },
+}) do
+  vim.keymap.set("n", mapping[1], function()
+    require("config.resize").move(mapping[2], mapping[3])
+  end, { silent = true, desc = mapping[4] })
+end
+
 -- toggle line numbers mapped (to Ctrl+n twice)
 vim.keymap.set('n', '<C-N><C-N>', ':set invnumber<CR>', silent)
 
